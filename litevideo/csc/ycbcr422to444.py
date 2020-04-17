@@ -34,14 +34,18 @@ class YCbCr422to444(Module):
             If(~parity_in,
                 y_fifo.sink.valid.eq(sink.valid & sink.ready),
                 y_fifo.sink.data.eq(sink.y),
+                #y_fifo.sink.data.eq(0xb2),
                 cb_fifo.sink.valid.eq(sink.valid & sink.ready),
                 cb_fifo.sink.data.eq(sink.cb_cr),
+                #cb_fifo.sink.data.eq(0xab),
                 sink.ready.eq(y_fifo.sink.ready & cb_fifo.sink.ready)
             ).Else(
                 y_fifo.sink.valid.eq(sink.valid & sink.ready),
                 y_fifo.sink.data.eq(sink.y),
+                #y_fifo.sink.data.eq(0xb2),
                 cr_fifo.sink.valid.eq(sink.valid & sink.ready),
                 cr_fifo.sink.data.eq(sink.cb_cr),
+                #cr_fifo.sink.data.eq(0x00),
                 sink.ready.eq(y_fifo.sink.ready & cr_fifo.sink.ready)
             )
         ]

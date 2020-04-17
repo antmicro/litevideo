@@ -39,7 +39,11 @@ class VideoOut(Module, AutoCSR):
         cd = dram_port.cd
 
         self.submodules.core = core = VideoOutCore(dram_port, mode, fifo_depth)
-        self.submodules.driver = driver = Driver(device, pads, mode, external_clocking)
+        
+        if device == "sim":
+            self.sink = stream.Endpoint(phy_layout(mode))
+        else:
+            self.submodules.driver = driver = Driver(device, pads, mode, external_clocking)
 
         if mode == "raw":
             self.comb += [
@@ -81,18 +85,24 @@ class VideoOut(Module, AutoCSR):
                 ycbcr422to444.sink.cb_cr.eq(core_source_data_d[8:]),
 
                 ycbcr422to444.source.connect(ycbcr2rgb.sink),
-
-                ycbcr2rgb.source.connect(driver.sink)
             ]
+            if device == "sim":
+                self.comb += ycbcr2rgb.source.connect(self.sink)
+            else:
+                self.comb += ycbcr2rgb.source.connect(driver.sink)
+
             # timing
             self.comb += [
                 timing_delay.sink.de.eq(core.source.de),
                 timing_delay.sink.vsync.eq(core.source.vsync),
                 timing_delay.sink.hsync.eq(core.source.hsync),
-
-                driver.sink.de.eq(timing_delay.source.de),
-                driver.sink.vsync.eq(timing_delay.source.vsync),
-                driver.sink.hsync.eq(timing_delay.source.hsync)
             ]
+
+            if device != "sim":
+                self.comb += [
+                    driver.sink.de.eq(timing_delay.source.de),
+                    driver.sink.vsync.eq(timing_delay.source.vsync),
+                    driver.sink.hsync.eq(timing_delay.source.hsync)
+                ]
         else:
             raise ValueError("Video mode {} not supported".format(mode))

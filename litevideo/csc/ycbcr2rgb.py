@@ -85,22 +85,39 @@ class YCbCr2RGBDatapath(Module):
 
         # stage 3
         # line addition for all component
-        r = Signal((ycbcr_w + 4, True))
-        g = Signal((ycbcr_w + 4, True))
-        b = Signal((ycbcr_w + 4, True))
+        #r = Signal((ycbcr_w + 4, True))
+        #g = Signal((ycbcr_w + 4, True))
+        #b = Signal((ycbcr_w + 4, True))
+        r = Signal((10, True))
+        g = Signal((10, True))
+        b = Signal((10, True))
+
+
+        y = Signal(10, reset=-1)
+        cb = Signal(10, reset=-1)
+        cr = Signal(10, reset=-1)
+        self.comb += [
+            y.eq(sink.y),
+            cb.eq(sink.cb),
+            cr.eq(sink.cr),
+        ]
+
         self.sync += [
-            r.eq(y_minus_yoffset + cr_minus_coffset_mult_acoef[coef_w-2:]),
-            g.eq(y_minus_yoffset + cb_minus_coffset_mult_bcoef[coef_w-2:] +
-                                   cr_minus_coffset_mult_ccoef[coef_w-2:]),
-            b.eq(y_minus_yoffset + cb_minus_coffset_mult_dcoef[coef_w-2:])
+            r.eq(y + cr + (cr >> 2) + (cr >> 3) + (cr >> 5) - 180),
+            g.eq(y - ((cb >> 2) + (cb >> 4) + (cb >> 5) - 44) - ((cr >> 1) + (cr >> 4) + (cr >> 5) - 76)),
+            b.eq(y + cb + (cb >> 1) + (cb >> 2) + (cb >> 6) - 226),
+            #r.eq(y_minus_yoffset + cr_minus_coffset_mult_acoef[coef_w-2:]),
+            #g.eq(y_minus_yoffset + cb_minus_coffset_mult_bcoef[coef_w-2:] +
+            #                       cr_minus_coffset_mult_ccoef[coef_w-2:]),
+            #b.eq(y_minus_yoffset + cb_minus_coffset_mult_dcoef[coef_w-2:])
         ]
 
         # stage 4
         # saturate
         self.sync += [
-            saturate(r, source.r, 0, 2**rgb_w-1),
-            saturate(g, source.g, 0, 2**rgb_w-1),
-            saturate(b, source.b, 0, 2**rgb_w-1)
+            saturate(r, source.r, 0, 2**rgb_w-1, 8),
+            saturate(g, source.g, 0, 2**rgb_w-1, 8),
+            saturate(b, source.b, 0, 2**rgb_w-1, 8)
         ]
 
 

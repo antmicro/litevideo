@@ -120,9 +120,9 @@ class RGB2YCbCrDatapath(Module):
         # stage 8
         # saturate
         self.sync += [
-            saturate(y, source.y, coefs["ymin"], coefs["ymax"]),
-            saturate(cb, source.cb, coefs["cmin"], coefs["cmax"]),
-            saturate(cr, source.cr, coefs["cmin"], coefs["cmax"])
+            saturate(y, source.y, coefs["ymin"], coefs["ymax"], 8),
+            saturate(cb, source.cb, coefs["cmin"], coefs["cmax"], 8),
+            saturate(cr, source.cr, coefs["cmin"], coefs["cmax"], 8)
         ]
 
 

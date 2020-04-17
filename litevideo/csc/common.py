@@ -3,14 +3,14 @@ from migen import *
 from litex.soc.interconnect import stream
 
 
-def saturate(i, o, minimum, maximum):
+def saturate(i, o, minimum, maximum, dw):
     return [
-        If(i > maximum,
-            o.eq(maximum)
-        ).Elif(i < minimum,
+        If(i[-1] == 1,
             o.eq(minimum)
+        ).Elif(i > maximum,
+            o.eq(maximum)
         ).Else(
-            o.eq(i)
+            o.eq(i[:dw])
         )
     ]
 
